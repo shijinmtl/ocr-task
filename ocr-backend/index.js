@@ -22,17 +22,19 @@ app.post('/upload', upload.single('image'), (req, res) => {
     return res.status(400).send('No file uploaded.');
   }
 
+  const fileText = req.body.text || '';
+
   Tesseract.recognize(req.file.path, 'eng', { logger: m => console.log(m) })
     .then(result => {
       const extractedText = result.data.text;
       const newImage = new Image({
         originalName: req.file.originalname,
-        analysisResult: extractedText
+        analysisResult: extractedText,
+        textDescription: fileText
       });
-
       newImage.save()
         .then(() => {
-          res.json({ text: extractedText });
+          res.json({ text: extractedText, fileText:fileText });
         })
         .catch(err => {
           res.status(500).send('Error saving to database.');
